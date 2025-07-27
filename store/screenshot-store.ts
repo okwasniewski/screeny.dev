@@ -4,6 +4,18 @@ import { create } from "zustand";
 import { renderScreenshot } from "@/lib/renderer";
 import { BACKGROUND_OPTIONS } from "@/lib/constants";
 
+async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("Blob creation failed"));
+      }
+    });
+  });
+}
+
 interface ScreenshotState {
   // Image
   uploadedImage: string | null;
@@ -146,32 +158,19 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
     try {
       setCopyStatus("copying");
 
-      canvasRef.current.toBlob(
-        async (blob) => {
-          if (!blob) {
-            setCopyStatus("error");
-            setTimeout(() => setCopyStatus("idle"), 3000);
-            return;
-          }
+      try {
+        const item = new ClipboardItem({
+          "image/png": canvasToBlob(canvasRef.current),
+        });
 
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                "image/png": blob,
-              }),
-            ]);
+        await navigator.clipboard.write([item]);
 
-            setCopyStatus("success");
-            setTimeout(() => setCopyStatus("idle"), 2000);
-          } catch (error) {
-            console.error("Failed to copy to clipboard:", error);
-            setCopyStatus("error");
-            setTimeout(() => setCopyStatus("idle"), 3000);
-          }
-        },
-        "image/png",
-        1.0,
-      );
+        setCopyStatus("success");
+        setTimeout(() => setCopyStatus("idle"), 2000);
+      } catch (error) {
+        setCopyStatus("error");
+        setTimeout(() => setCopyStatus("idle"), 2000);
+      }
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       setCopyStatus("error");
