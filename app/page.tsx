@@ -7,14 +7,11 @@ import { Footer } from "@/components/footer";
 import { ImageUploader } from "@/components/image-uploader";
 import { ScreenshotControls } from "@/components/screenshot-controls";
 import { ScreenshotPreview } from "@/components/screenshot-preview";
-import {
-  ScreenshotProvider,
-  useScreenshot,
-} from "@/contexts/screenshot-context";
+import { useScreenshotStore } from "@/store/screenshot-store";
 import { BACKGROUND_OPTIONS } from "@/lib/constants";
 
 function ScreenshotEditorContent() {
-  const { uploadedImage, setUploadedImage } = useScreenshot();
+  const { uploadedImage, setUploadedImage } = useScreenshotStore();
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -37,9 +34,5 @@ function ScreenshotEditorContent() {
 }
 
 export default function ScreenshotEditor() {
-  return (
-    <ScreenshotProvider backgroundOptions={BACKGROUND_OPTIONS}>
-      <ScreenshotEditorContent />
-    </ScreenshotProvider>
-  );
+  return <ScreenshotEditorContent />;
 }

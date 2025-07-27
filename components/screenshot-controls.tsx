@@ -4,7 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Download, Copy } from "lucide-react";
 import { ImageUploader } from "@/components/image-uploader";
-import { useScreenshot } from "@/contexts/screenshot-context";
+import { useScreenshotStore } from "@/store/screenshot-store";
 
 interface ScreenshotControlsProps {
   backgroundOptions: { name: string; value: string }[];
@@ -29,7 +29,7 @@ export function ScreenshotControls({ backgroundOptions }: ScreenshotControlsProp
     handleCopyToClipboard,
     copyStatus,
     clipboardSupported,
-  } = useScreenshot();
+  } = useScreenshotStore();
   return (
     <div className="lg:col-span-1 space-y-6">
       {/* Upload Area (smaller when image is already uploaded) */}

@@ -1,9 +1,29 @@
+import { useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useScreenshot } from "@/contexts/screenshot-context";
+import { useScreenshotStore } from "@/store/screenshot-store";
 
 export function ScreenshotPreview() {
-  const { canvasRef } = useScreenshot();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { setCanvasRef, setClipboardSupported, renderCanvas, uploadedImage } = useScreenshotStore();
+
+  useEffect(() => {
+    setCanvasRef(canvasRef);
+    
+    // Check clipboard support on mount
+    setClipboardSupported(
+      typeof navigator !== "undefined" &&
+        "clipboard" in navigator &&
+        "write" in navigator.clipboard,
+    );
+  }, [setCanvasRef, setClipboardSupported]);
+
+  // Trigger render when canvas ref is set and we have an image
+  useEffect(() => {
+    if (canvasRef.current && uploadedImage) {
+      renderCanvas();
+    }
+  }, [renderCanvas, uploadedImage]);
 
   return (
     <div className="lg:col-span-2">
