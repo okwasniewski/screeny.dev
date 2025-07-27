@@ -308,7 +308,7 @@ export default function ScreenshotEditor() {
             >
               {/* Updated to use theme-aware text color */}
               <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-sm text-muted-foreground mb-2">Drop your screenshot here or click to browse</p>
+              <p className="text-sm text-muted-foreground mb-2">Drop your screenshot here or click to browse \n (You can also paste it with ⌘ + v)</p>
               <p className="text-xs text-muted-foreground/70">PNG, JPG, GIF up to 10MB</p>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             </div>

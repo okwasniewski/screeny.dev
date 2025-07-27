@@ -10,6 +10,33 @@ export const metadata: Metadata = {
   title: "screeny.dev",
   description: "Transform your screenshots with beautiful backgrounds and rounded corners",
   generator: "screeny.dev",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  // Added Open Graph metadata for social media sharing
+  openGraph: {
+    title: "screeny.dev",
+    description: "Transform your screenshots with beautiful backgrounds and rounded corners",
+    url: "https://screeny.dev",
+    siteName: "screeny.dev",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "screeny.dev - Transform your screenshots with beautiful backgrounds",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  // Added Twitter Card metadata
+  twitter: {
+    card: "summary_large_image",
+    title: "screeny.dev",
+    description: "Transform your screenshots with beautiful backgrounds and rounded corners",
+    images: ["/og-image.png"],
+  },
 }
 
 export default function RootLayout({
