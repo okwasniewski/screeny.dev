@@ -96,48 +96,50 @@ export function renderScreenshot(options: RenderOptions): Promise<void> {
         const imageHeight = img.height;
         const radius = borderRadius;
 
-        // Draw shadow using canvas shadowBlur (proper way)
-        ctx.save();
+        // Create shadow by drawing the image with shadow properties
+        if (shadowBlur > 0 && shadowOpacity > 0) {
+          ctx.save();
 
-        // Set shadow properties
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = shadowOffsetY;
-        ctx.shadowBlur = shadowBlur;
-        ctx.shadowColor = `rgba(0, 0, 0, ${shadowOpacity / 100})`;
+          // Set shadow properties
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = shadowOffsetY;
+          ctx.shadowBlur = shadowBlur;
+          ctx.shadowColor = `rgba(0, 0, 0, ${shadowOpacity / 100})`;
 
-        // Draw a shape that will cast the shadow (invisible)
-        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+          // Create rounded rectangle clipping path for shadow too
+          ctx.beginPath();
+          ctx.moveTo(imageX + radius, imageY);
+          ctx.lineTo(imageX + imageWidth - radius, imageY);
+          ctx.quadraticCurveTo(
+            imageX + imageWidth,
+            imageY,
+            imageX + imageWidth,
+            imageY + radius,
+          );
+          ctx.lineTo(imageX + imageWidth, imageY + imageHeight - radius);
+          ctx.quadraticCurveTo(
+            imageX + imageWidth,
+            imageY + imageHeight,
+            imageX + imageWidth - radius,
+            imageY + imageHeight,
+          );
+          ctx.lineTo(imageX + radius, imageY + imageHeight);
+          ctx.quadraticCurveTo(
+            imageX,
+            imageY + imageHeight,
+            imageX,
+            imageY + imageHeight - radius,
+          );
+          ctx.lineTo(imageX, imageY + radius);
+          ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
+          ctx.closePath();
+          ctx.clip();
 
-        // Draw shadow rounded rectangle
-        ctx.beginPath();
-        ctx.moveTo(imageX + radius, imageY);
-        ctx.lineTo(imageX + imageWidth - radius, imageY);
-        ctx.quadraticCurveTo(
-          imageX + imageWidth,
-          imageY,
-          imageX + imageWidth,
-          imageY + radius,
-        );
-        ctx.lineTo(imageX + imageWidth, imageY + imageHeight - radius);
-        ctx.quadraticCurveTo(
-          imageX + imageWidth,
-          imageY + imageHeight,
-          imageX + imageWidth - radius,
-          imageY + imageHeight,
-        );
-        ctx.lineTo(imageX + radius, imageY + imageHeight);
-        ctx.quadraticCurveTo(
-          imageX,
-          imageY + imageHeight,
-          imageX,
-          imageY + imageHeight - radius,
-        );
-        ctx.lineTo(imageX, imageY + radius);
-        ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
-        ctx.closePath();
-        ctx.fill();
+          // Draw the image to create the shadow (the shadow will follow the image shape)
+          ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
 
-        ctx.restore();
+          ctx.restore();
+        }
 
         // Now draw the image with clipping
         ctx.save();

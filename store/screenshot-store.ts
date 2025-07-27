@@ -14,6 +14,7 @@ interface ScreenshotState {
   selectedBackground: string;
 
   // Shadow settings
+  shadowEnabled: boolean;
   shadowOffsetY: number;
   shadowBlur: number;
   shadowOpacity: number;
@@ -36,6 +37,7 @@ interface ScreenshotActions {
   setSelectedBackground: (background: string) => void;
 
   // Shadow actions
+  setShadowEnabled: (enabled: boolean) => void;
   setShadowOffsetY: (offset: number) => void;
   setShadowBlur: (blur: number) => void;
   setShadowOpacity: (opacity: number) => void;
@@ -61,6 +63,7 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
   borderRadius: 40,
   padding: 95,
   selectedBackground: BACKGROUND_OPTIONS[0].value, // Default to first background option
+  shadowEnabled: true,
   shadowOffsetY: 8,
   shadowBlur: 20,
   shadowOpacity: 30,
@@ -86,6 +89,11 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
 
   setSelectedBackground: (background: string) => {
     set({ selectedBackground: background });
+    get().renderCanvas();
+  },
+
+  setShadowEnabled: (enabled: boolean) => {
+    set({ shadowEnabled: enabled });
     get().renderCanvas();
   },
 
@@ -179,6 +187,7 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
       padding,
       borderRadius,
       selectedBackground,
+      shadowEnabled,
       shadowOffsetY,
       shadowBlur,
       shadowOpacity,
@@ -193,9 +202,9 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
         padding,
         borderRadius,
         background: selectedBackground,
-        shadowOffsetY,
-        shadowBlur,
-        shadowOpacity,
+        shadowOffsetY: shadowEnabled ? shadowOffsetY : 0,
+        shadowBlur: shadowEnabled ? shadowBlur : 0,
+        shadowOpacity: shadowEnabled ? shadowOpacity : 0,
       });
     } catch (error) {
       console.error("Rendering failed:", error);

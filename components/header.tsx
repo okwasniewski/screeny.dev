@@ -17,9 +17,6 @@ export function Header() {
         <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground/90 to-foreground/60 bg-clip-text text-transparent">
           screeny.dev
         </h1>
-        <Badge variant="secondary" className="ml-2 text-xs">
-          Beta
-        </Badge>
       </div>
       {/* Updated to use theme-aware text color */}
       <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

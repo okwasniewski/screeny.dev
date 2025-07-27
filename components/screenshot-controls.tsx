@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Download, Copy } from "lucide-react";
 import { ImageUploader } from "@/components/image-uploader";
 import { useScreenshotStore } from "@/store/screenshot-store";
@@ -18,6 +19,8 @@ export function ScreenshotControls({ backgroundOptions }: ScreenshotControlsProp
     setBorderRadius,
     padding,
     setPadding,
+    shadowEnabled,
+    setShadowEnabled,
     shadowOffsetY,
     setShadowOffsetY,
     shadowBlur,
@@ -87,9 +90,15 @@ export function ScreenshotControls({ backgroundOptions }: ScreenshotControlsProp
 
       {/* Shadow Controls */}
       <Card className="p-6">
-        <Label className="text-sm font-medium mb-4 block">Shadow</Label>
+        <div className="flex items-center justify-between mb-4">
+          <Label className="text-sm font-medium">Shadow</Label>
+          <Switch
+            checked={shadowEnabled}
+            onCheckedChange={setShadowEnabled}
+          />
+        </div>
         
-        <div className="space-y-4">
+        <div className={`space-y-4 transition-opacity ${shadowEnabled ? 'opacity-100' : 'opacity-50'}`}>
           <div>
             <Label className="text-xs text-muted-foreground mb-2 block">
               Offset: {shadowOffsetY}px
@@ -101,6 +110,7 @@ export function ScreenshotControls({ backgroundOptions }: ScreenshotControlsProp
               min={0}
               step={1}
               className="w-full"
+              disabled={!shadowEnabled}
             />
           </div>
           
@@ -115,6 +125,7 @@ export function ScreenshotControls({ backgroundOptions }: ScreenshotControlsProp
               min={0}
               step={1}
               className="w-full"
+              disabled={!shadowEnabled}
             />
           </div>
           
@@ -129,6 +140,7 @@ export function ScreenshotControls({ backgroundOptions }: ScreenshotControlsProp
               min={0}
               step={5}
               className="w-full"
+              disabled={!shadowEnabled}
             />
           </div>
         </div>
