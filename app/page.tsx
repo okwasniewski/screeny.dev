@@ -2,10 +2,10 @@
 
 import type React from "react";
 
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ImageUploader } from "@/components/image-uploader";
-import { ScreenshotControls } from "@/components/screenshot-controls";
+import { BottomControlBar } from "@/components/bottom-control-bar";
+import { StickyTopHeader } from "@/components/sticky-top-header";
 import { ScreenshotPreview } from "@/components/screenshot-preview";
 import { useScreenshotStore } from "@/store/screenshot-store";
 import { BACKGROUND_OPTIONS } from "@/lib/constants";
@@ -14,20 +14,29 @@ function ScreenshotEditorContent() {
   const { uploadedImage, setUploadedImage } = useScreenshotStore();
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="container mx-auto relative">
-        <Header />
+    <div className="h-screen bg-background">
+      <StickyTopHeader showActions={!!uploadedImage} />
 
+      <div className="container mx-auto">
         {uploadedImage ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ScreenshotControls backgroundOptions={BACKGROUND_OPTIONS} />
+          <div className="pt-20 pb-32">
             <ScreenshotPreview />
+            <BottomControlBar backgroundOptions={BACKGROUND_OPTIONS} />
           </div>
         ) : (
-          <ImageUploader onImageUpload={setUploadedImage} />
+          <div className="h-screen justify-center flex items-center flex-col">
+            <div className="flex flex-col items-center mb-8">
+              <h1 className="text-2xl font-bold mb-4">
+                Turn your screenshots into stunning images
+              </h1>
+              <p className="text-gray-500">
+                Upload, customize, and download in seconds.
+              </p>
+            </div>
+            <ImageUploader onImageUpload={setUploadedImage} />
+            <Footer />
+          </div>
         )}
-
-        <Footer />
       </div>
     </div>
   );

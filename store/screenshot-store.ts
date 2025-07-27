@@ -42,6 +42,7 @@ interface ScreenshotState {
 interface ScreenshotActions {
   // Image actions
   setUploadedImage: (image: string) => void;
+  clearUploadedImage: () => void;
 
   // Style actions
   setBorderRadius: (radius: number) => void;
@@ -87,6 +88,10 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
   setUploadedImage: (image: string) => {
     set({ uploadedImage: image });
     get().renderCanvas();
+  },
+
+  clearUploadedImage: () => {
+    set({ uploadedImage: null });
   },
 
   setBorderRadius: (radius: number) => {

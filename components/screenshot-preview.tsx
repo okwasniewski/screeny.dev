@@ -5,11 +5,12 @@ import { useScreenshotStore } from "@/store/screenshot-store";
 
 export function ScreenshotPreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { setCanvasRef, setClipboardSupported, renderCanvas, uploadedImage } = useScreenshotStore();
+  const { setCanvasRef, setClipboardSupported, renderCanvas, uploadedImage } =
+    useScreenshotStore();
 
   useEffect(() => {
     setCanvasRef(canvasRef);
-    
+
     // Check clipboard support on mount
     setClipboardSupported(
       typeof navigator !== "undefined" &&
@@ -26,19 +27,15 @@ export function ScreenshotPreview() {
   }, [renderCanvas, uploadedImage]);
 
   return (
-    <div className="lg:col-span-2">
-      <Card className="p-6">
-        <Label className="text-sm font-medium mb-4 block">
-          Preview
-        </Label>
-        <div className="flex justify-center items-center">
-          <canvas
-            ref={canvasRef}
-            className="max-w-full max-h-[70vh] rounded-lg object-contain"
-            style={{ imageRendering: "auto" }}
-          />
-        </div>
-      </Card>
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-4"></div>
+      <div className="flex justify-center items-center min-h-[calc(100vh-300px)]">
+        <canvas
+          ref={canvasRef}
+          className="max-w-full max-h-[calc(100vh-300px)] rounded-lg object-contain"
+          style={{ imageRendering: "auto" }}
+        />
+      </div>
     </div>
   );
 }
