@@ -17,16 +17,16 @@ function ScreenshotEditorContent() {
     <div className="h-screen bg-background">
       <StickyTopHeader showActions={!!uploadedImage} />
 
-      <div className="container mx-auto">
+      <div className="container mx-auto px-4">
         {uploadedImage ? (
           <div className="pt-20 pb-32">
             <ScreenshotPreview />
             <BottomControlBar backgroundOptions={BACKGROUND_OPTIONS} />
           </div>
         ) : (
-          <div className="h-screen justify-center flex items-center flex-col">
-            <div className="flex flex-col items-center mb-8">
-              <h1 className="text-2xl font-bold mb-4">
+          <div className="h-screen justify-center flex items-center flex-col ">
+            <div className="flex flex-col items-center mb-8 mt-24">
+              <h1 className="text-2xl font-bold mb-4 text-center">
                 Turn your screenshots into stunning images
               </h1>
               <p className="text-gray-500">

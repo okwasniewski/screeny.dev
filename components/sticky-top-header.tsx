@@ -8,6 +8,7 @@ import {
 import { Download, Copy, ChevronDown, X, Sparkles, Check } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useScreenshotStore } from "@/store/screenshot-store";
+import { cn } from "@/lib/utils";
 
 interface StickyTopHeaderProps {
   showActions?: boolean;
@@ -30,7 +31,10 @@ export function StickyTopHeader({ showActions = false }: StickyTopHeaderProps) {
           <div className="items-center">
             <button
               onClick={clearUploadedImage}
-              className="hidden sm:flex gap-2 items-center hover:opacity-80 transition-opacity cursor-pointer"
+              className={cn(
+                "gap-2 items-center hover:opacity-80 transition-opacity cursor-pointer",
+                showActions ? "hidden sm:flex" : "flex",
+              )}
               title="Reset to home"
             >
               <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
@@ -42,16 +46,17 @@ export function StickyTopHeader({ showActions = false }: StickyTopHeaderProps) {
 
           {/* Right side - Theme toggle and Actions */}
           <div className="flex items-center gap-3">
-            {/* Clear Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearUploadedImage}
-              className="hover:bg-destructive dark:hover:text-destructive-foreground hover:text-white"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Clear
-            </Button>
+            {showActions && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearUploadedImage}
+                className="hover:bg-destructive dark:hover:text-destructive-foreground hover:text-white"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            )}
 
             {/* Actions - only show when showActions is true */}
             {showActions && (
@@ -111,11 +116,11 @@ export function StickyTopHeader({ showActions = false }: StickyTopHeaderProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-
-                {/* Theme Toggle - always visible */}
-                <ModeToggle />
               </>
             )}
+
+            {/* Theme Toggle - always visible */}
+            <ModeToggle />
           </div>
         </div>
       </div>
