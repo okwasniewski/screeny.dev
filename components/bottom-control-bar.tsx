@@ -22,7 +22,7 @@ export function BottomControlBar({ backgroundOptions }: BottomControlBarProps) {
       <div className="container mx-auto p-4">
         <div className="flex items-center justify-between gap-6 flex-wrap">
           {/* Background Selection */}
-          <div className="flex items-center gap-3 overflow-scroll">
+          <div className="flex items-center gap-3 overflow-scroll py-1">
             <Label className="text-sm font-medium whitespace-nowrap">
               Background:
             </Label>
