@@ -11,6 +11,7 @@ import { Download, Copy } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ImageUploader } from "@/components/image-uploader";
+import { renderScreenshot } from "@/lib/renderer";
 
 const BACKGROUND_OPTIONS = [
   {
@@ -36,7 +37,7 @@ const BACKGROUND_OPTIONS = [
 
 export default function ScreenshotEditor() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [borderRadius, setBorderRadius] = useState(20);
+  const [borderRadius, setBorderRadius] = useState(40);
   const [padding, setPadding] = useState(95);
   const [selectedBackground, setSelectedBackground] = useState(
     BACKGROUND_OPTIONS[0].value,
@@ -45,6 +46,9 @@ export default function ScreenshotEditor() {
     "idle" | "copying" | "success" | "error"
   >("idle");
   const [clipboardSupported, setClipboardSupported] = useState(false);
+  const [shadowOffsetY, setShadowOffsetY] = useState(8);
+  const [shadowBlur, setShadowBlur] = useState(20);
+  const [shadowOpacity, setShadowOpacity] = useState(30);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleImageUpload = useCallback((imageData: string) => {
@@ -53,121 +57,35 @@ export default function ScreenshotEditor() {
 
   // Render to canvas whenever settings change
   useEffect(() => {
-    const renderCanvas = () => {
+    const renderCanvas = async () => {
       if (!uploadedImage || !canvasRef.current) return;
 
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const img = new Image();
-      img.onload = () => {
-        const paddingValue = padding;
-        const canvasWidth = img.width + paddingValue * 2;
-        const canvasHeight = img.height + paddingValue * 2;
-
-        // Set canvas size to actual output dimensions
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-
-        // Clear canvas
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-        // Draw background first
-        if (selectedBackground.startsWith("linear-gradient")) {
-          // Parse gradient
-          const gradientMatch = selectedBackground.match(
-            /linear-gradient\((\d+)deg,\s*(.+)\)/,
-          );
-          if (gradientMatch) {
-            const angle = Number.parseInt(gradientMatch[1]);
-            const colorStops = gradientMatch[2].split(",").map((s) => s.trim());
-
-            // Convert angle to canvas coordinates
-            const angleRad = ((angle - 90) * Math.PI) / 180;
-            const diagonal = Math.sqrt(
-              canvasWidth * canvasWidth + canvasHeight * canvasHeight,
-            );
-            const x1 = canvasWidth / 2 - (Math.cos(angleRad) * diagonal) / 2;
-            const y1 = canvasHeight / 2 - (Math.sin(angleRad) * diagonal) / 2;
-            const x2 = canvasWidth / 2 + (Math.cos(angleRad) * diagonal) / 2;
-            const y2 = canvasHeight / 2 + (Math.sin(angleRad) * diagonal) / 2;
-
-            const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-
-            // Parse and add color stops
-            colorStops.forEach((colorStop, index) => {
-              const match = colorStop.match(/(.+?)\s+(\d+)%/);
-              if (match) {
-                const color = match[1].trim();
-                const percentage = Number.parseInt(match[2]) / 100;
-                gradient.addColorStop(percentage, color);
-              } else {
-                const position =
-                  colorStops.length === 1 ? 0 : index / (colorStops.length - 1);
-                gradient.addColorStop(position, colorStop.trim());
-              }
-            });
-
-            ctx.fillStyle = gradient;
-          } else {
-            ctx.fillStyle = "#667eea";
-          }
-        } else {
-          ctx.fillStyle = selectedBackground;
-        }
-
-        // Fill the entire canvas with background
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-        // Draw the image with border radius
-        ctx.save();
-
-        const imageX = paddingValue;
-        const imageY = paddingValue;
-        const imageWidth = img.width;
-        const imageHeight = img.height;
-        const radius = borderRadius;
-
-        // Create rounded rectangle clipping path
-        ctx.beginPath();
-        ctx.moveTo(imageX + radius, imageY);
-        ctx.lineTo(imageX + imageWidth - radius, imageY);
-        ctx.quadraticCurveTo(
-          imageX + imageWidth,
-          imageY,
-          imageX + imageWidth,
-          imageY + radius,
-        );
-        ctx.lineTo(imageX + imageWidth, imageY + imageHeight - radius);
-        ctx.quadraticCurveTo(
-          imageX + imageWidth,
-          imageY + imageHeight,
-          imageX + imageWidth - radius,
-          imageY + imageHeight,
-        );
-        ctx.lineTo(imageX + radius, imageY + imageHeight);
-        ctx.quadraticCurveTo(
-          imageX,
-          imageY + imageHeight,
-          imageX,
-          imageY + imageHeight - radius,
-        );
-        ctx.lineTo(imageX, imageY + radius);
-        ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
-        ctx.closePath();
-        ctx.clip();
-
-        // Draw the image
-        ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
-        ctx.restore();
-      };
-
-      img.src = uploadedImage;
+      try {
+        await renderScreenshot({
+          canvas: canvasRef.current,
+          imageData: uploadedImage,
+          padding,
+          borderRadius,
+          background: selectedBackground,
+          shadowOffsetY,
+          shadowBlur,
+          shadowOpacity,
+        });
+      } catch (error) {
+        console.error("Rendering failed:", error);
+      }
     };
 
     renderCanvas();
-  }, [uploadedImage, borderRadius, padding, selectedBackground]);
+  }, [
+    uploadedImage,
+    borderRadius,
+    padding,
+    selectedBackground,
+    shadowOffsetY,
+    shadowBlur,
+    shadowOpacity,
+  ]);
 
   // Download functionality
   const handleDownload = useCallback(() => {
@@ -296,6 +214,55 @@ export default function ScreenshotEditor() {
                   step={5}
                   className="w-full"
                 />
+              </Card>
+
+              {/* Shadow Controls */}
+              <Card className="p-6">
+                <Label className="text-sm font-medium mb-4 block">Shadow</Label>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-2 block">
+                      Offset: {shadowOffsetY}px
+                    </Label>
+                    <Slider
+                      value={[shadowOffsetY]}
+                      onValueChange={(value) => setShadowOffsetY(value[0])}
+                      max={50}
+                      min={0}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-2 block">
+                      Blur: {shadowBlur}px
+                    </Label>
+                    <Slider
+                      value={[shadowBlur]}
+                      onValueChange={(value) => setShadowBlur(value[0])}
+                      max={50}
+                      min={0}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-2 block">
+                      Opacity: {shadowOpacity}%
+                    </Label>
+                    <Slider
+                      value={[shadowOpacity]}
+                      onValueChange={(value) => setShadowOpacity(value[0])}
+                      max={100}
+                      min={0}
+                      step={5}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
               </Card>
 
               {/* Export Buttons */}
