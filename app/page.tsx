@@ -239,6 +239,36 @@ export default function ScreenshotEditor() {
     }
   }, [renderToCanvas])
 
+  // Add paste event handler
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items
+      if (!items) return
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const blob = items[i].getAsFile()
+          if (blob) {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+              setUploadedImage(e.target?.result as string)
+            }
+            reader.readAsDataURL(blob)
+            break
+          }
+        }
+      }
+    }
+
+    // Add event listener
+    document.addEventListener("paste", handlePaste)
+
+    // Clean up
+    return () => {
+      document.removeEventListener("paste", handlePaste)
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto relative">
@@ -404,6 +434,14 @@ export default function ScreenshotEditor() {
 
         {/* Added footer section with creator info and links */}
         <footer className="mt-12 text-center text-sm text-muted-foreground pb-6">
+          {/* Added profile picture - made smaller */}
+          <div className="flex justify-center mb-3">
+            <img
+              src="https://github.com/okwasniewski.png?size=200"
+              alt="Oskar Kwaśniewski"
+              className="h-10 w-10 rounded-full border-2 border-border"
+            />
+          </div>
           <p>Built by Oskar Kwaśniewski</p>
           <div className="flex items-center justify-center gap-4 mt-2">
             <a
