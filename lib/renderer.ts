@@ -96,7 +96,7 @@ export function renderScreenshot(options: RenderOptions): Promise<void> {
         const imageHeight = img.height;
         const radius = borderRadius;
 
-        // Create shadow by drawing the image with shadow properties
+        // Create shadow
         if (shadowBlur > 0 && shadowOpacity > 0) {
           ctx.save();
 
@@ -106,37 +106,90 @@ export function renderScreenshot(options: RenderOptions): Promise<void> {
           ctx.shadowBlur = shadowBlur;
           ctx.shadowColor = `rgba(0, 0, 0, ${shadowOpacity / 100})`;
 
-          // Create rounded rectangle clipping path for shadow too
-          ctx.beginPath();
-          ctx.moveTo(imageX + radius, imageY);
-          ctx.lineTo(imageX + imageWidth - radius, imageY);
-          ctx.quadraticCurveTo(
-            imageX + imageWidth,
-            imageY,
-            imageX + imageWidth,
-            imageY + radius,
-          );
-          ctx.lineTo(imageX + imageWidth, imageY + imageHeight - radius);
-          ctx.quadraticCurveTo(
-            imageX + imageWidth,
-            imageY + imageHeight,
-            imageX + imageWidth - radius,
-            imageY + imageHeight,
-          );
-          ctx.lineTo(imageX + radius, imageY + imageHeight);
-          ctx.quadraticCurveTo(
-            imageX,
-            imageY + imageHeight,
-            imageX,
-            imageY + imageHeight - radius,
-          );
-          ctx.lineTo(imageX, imageY + radius);
-          ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
-          ctx.closePath();
-          ctx.clip();
+          // Check if image has transparency by drawing it to a temporary canvas
+          const tempCanvas = document.createElement("canvas");
+          const tempCtx = tempCanvas.getContext("2d");
+          tempCanvas.width = img.width;
+          tempCanvas.height = img.height;
 
-          // Draw the image to create the shadow (the shadow will follow the image shape)
-          ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
+          if (tempCtx) {
+            tempCtx.drawImage(img, 0, 0);
+            const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+            const data = imageData.data;
+
+            // Check if any pixel has alpha < 255 (transparent)
+            let hasTransparency = false;
+            for (let i = 3; i < data.length; i += 4) {
+              if (data[i] < 255) {
+                hasTransparency = true;
+                break;
+              }
+            }
+
+            if (hasTransparency) {
+              // For transparent images, draw the image itself to create shadow
+              ctx.beginPath();
+              ctx.moveTo(imageX + radius, imageY);
+              ctx.lineTo(imageX + imageWidth - radius, imageY);
+              ctx.quadraticCurveTo(
+                imageX + imageWidth,
+                imageY,
+                imageX + imageWidth,
+                imageY + radius,
+              );
+              ctx.lineTo(imageX + imageWidth, imageY + imageHeight - radius);
+              ctx.quadraticCurveTo(
+                imageX + imageWidth,
+                imageY + imageHeight,
+                imageX + imageWidth - radius,
+                imageY + imageHeight,
+              );
+              ctx.lineTo(imageX + radius, imageY + imageHeight);
+              ctx.quadraticCurveTo(
+                imageX,
+                imageY + imageHeight,
+                imageX,
+                imageY + imageHeight - radius,
+              );
+              ctx.lineTo(imageX, imageY + radius);
+              ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
+              ctx.closePath();
+              ctx.clip();
+
+              // Draw the image to create shape-aware shadow
+              ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
+            } else {
+              // For opaque images, draw a rounded rectangle shadow
+              ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+              ctx.beginPath();
+              ctx.moveTo(imageX + radius, imageY);
+              ctx.lineTo(imageX + imageWidth - radius, imageY);
+              ctx.quadraticCurveTo(
+                imageX + imageWidth,
+                imageY,
+                imageX + imageWidth,
+                imageY + radius,
+              );
+              ctx.lineTo(imageX + imageWidth, imageY + imageHeight - radius);
+              ctx.quadraticCurveTo(
+                imageX + imageWidth,
+                imageY + imageHeight,
+                imageX + imageWidth - radius,
+                imageY + imageHeight,
+              );
+              ctx.lineTo(imageX + radius, imageY + imageHeight);
+              ctx.quadraticCurveTo(
+                imageX,
+                imageY + imageHeight,
+                imageX,
+                imageY + imageHeight - radius,
+              );
+              ctx.lineTo(imageX, imageY + radius);
+              ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
+              ctx.closePath();
+              ctx.fill();
+            }
+          }
 
           ctx.restore();
         }
