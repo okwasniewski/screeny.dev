@@ -8,6 +8,10 @@ export const BACKGROUND_OPTIONS = [
     value: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
   },
   {
+    name: "Callstack Gradient",
+    value: "linear-gradient(135deg, #412875 0%, #2A292E 75%)",
+  },
+  {
     name: "Green Gradient",
     value: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
   },

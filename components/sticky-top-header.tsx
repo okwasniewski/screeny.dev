@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Copy, ChevronDown, X, Sparkles, Check } from "lucide-react";
+import { Download, Copy, ChevronDown, X, Sparkles, Check, Github } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useScreenshotStore } from "@/store/screenshot-store";
 import { cn } from "@/lib/utils";
@@ -62,62 +62,70 @@ export function StickyTopHeader({ showActions = false }: StickyTopHeaderProps) {
             {showActions && (
               <>
                 {/* Export Dropdown */}
-                <div className="flex">
-                  <Button
-                    onClick={handleDownload}
-                    size="sm"
-                    className="rounded-r-none border-r-0 px-3"
-                  >
-                    {copyStatus === "success" ? (
-                      <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Copied!
-                      </>
-                    ) : copyStatus === "copying" ? (
-                      <>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copying...
-                      </>
-                    ) : copyStatus === "error" ? (
-                      <>
-                        <X className="h-4 w-4 mr-2" />
-                        Copy Failed
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export Image
-                      </>
-                    )}
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" className="rounded-l-none px-2">
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={handleDownload}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PNG
-                      </DropdownMenuItem>
-                      {clipboardSupported && (
-                        <DropdownMenuItem
-                          onClick={handleCopyToClipboard}
-                          disabled={copyStatus === "copying"}
-                        >
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm">
+                      {copyStatus === "success" ? (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Copied!
+                        </>
+                      ) : copyStatus === "copying" ? (
+                        <>
                           <Copy className="h-4 w-4 mr-2" />
-                          {copyStatus === "copying" && "Copying..."}
-                          {copyStatus === "success" && "✓ Copied!"}
-                          {copyStatus === "error" && "✗ Copy Failed"}
-                          {copyStatus === "idle" && "Copy to Clipboard"}
-                        </DropdownMenuItem>
+                          Copying...
+                        </>
+                      ) : copyStatus === "error" ? (
+                        <>
+                          <X className="h-4 w-4 mr-2" />
+                          Copy Failed
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          Export Image
+                        </>
                       )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleDownload}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download PNG
+                    </DropdownMenuItem>
+                    {clipboardSupported && (
+                      <DropdownMenuItem
+                        onClick={handleCopyToClipboard}
+                        disabled={copyStatus === "copying"}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        {copyStatus === "copying" && "Copying..."}
+                        {copyStatus === "success" && "✓ Copied!"}
+                        {copyStatus === "error" && "✗ Copy Failed"}
+                        {copyStatus === "idle" && "Copy to Clipboard"}
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
+
+            {/* GitHub Link - always visible */}
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="hover:bg-accent"
+              title="View source code on GitHub"
+            >
+              <a
+                href="https://github.com/okwasniewski/screeny.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Github className="h-4 w-4" />
+              </a>
+            </Button>
 
             {/* Theme Toggle - always visible */}
             <ModeToggle />
