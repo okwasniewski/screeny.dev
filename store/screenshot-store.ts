@@ -1,10 +1,10 @@
 "use client";
 
 import { create } from "zustand";
-import { renderScreenshot } from "@/lib/renderer";
 import { BACKGROUND_OPTIONS } from "@/lib/constants";
+import html2canvas from "html2canvas-pro";
 
-async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) {
@@ -35,8 +35,8 @@ interface ScreenshotState {
   copyStatus: "idle" | "copying" | "success" | "error";
   clipboardSupported: boolean;
 
-  // Canvas ref
-  canvasRef: React.RefObject<HTMLCanvasElement | null> | null;
+  // Preview ref
+  previewRef: React.RefObject<HTMLDivElement | null> | null;
 }
 
 interface ScreenshotActions {
@@ -58,14 +58,11 @@ interface ScreenshotActions {
   // UI actions
   setCopyStatus: (status: "idle" | "copying" | "success" | "error") => void;
   setClipboardSupported: (supported: boolean) => void;
-  setCanvasRef: (ref: React.RefObject<HTMLCanvasElement | null>) => void;
+  setPreviewRef: (ref: React.RefObject<HTMLDivElement | null>) => void;
 
   // Export actions
-  handleDownload: () => void;
-  handleCopyToClipboard: () => void;
-
-  // Canvas rendering
-  renderCanvas: () => Promise<void>;
+  handleDownload: () => Promise<void>;
+  handleCopyToClipboard: () => Promise<void>;
 }
 
 type ScreenshotStore = ScreenshotState & ScreenshotActions;
@@ -73,8 +70,8 @@ type ScreenshotStore = ScreenshotState & ScreenshotActions;
 export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
   // Initial state
   uploadedImage: null,
-  borderRadius: 40,
-  padding: 95,
+  borderRadius: 16,
+  padding: 50,
   selectedBackground: BACKGROUND_OPTIONS[0].value, // Default to first background option
   shadowEnabled: true,
   shadowOffsetY: 8,
@@ -82,12 +79,11 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
   shadowOpacity: 30,
   copyStatus: "idle",
   clipboardSupported: false,
-  canvasRef: null,
+  previewRef: null,
 
   // Actions
   setUploadedImage: (image: string) => {
     set({ uploadedImage: image });
-    get().renderCanvas();
   },
 
   clearUploadedImage: () => {
@@ -96,37 +92,30 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
 
   setBorderRadius: (radius: number) => {
     set({ borderRadius: radius });
-    get().renderCanvas();
   },
 
   setPadding: (padding: number) => {
     set({ padding });
-    get().renderCanvas();
   },
 
   setSelectedBackground: (background: string) => {
     set({ selectedBackground: background });
-    get().renderCanvas();
   },
 
   setShadowEnabled: (enabled: boolean) => {
     set({ shadowEnabled: enabled });
-    get().renderCanvas();
   },
 
   setShadowOffsetY: (offset: number) => {
     set({ shadowOffsetY: offset });
-    get().renderCanvas();
   },
 
   setShadowBlur: (blur: number) => {
     set({ shadowBlur: blur });
-    get().renderCanvas();
   },
 
   setShadowOpacity: (opacity: number) => {
     set({ shadowOpacity: opacity });
-    get().renderCanvas();
   },
 
   setCopyStatus: (status: "idle" | "copying" | "success" | "error") => {
@@ -137,81 +126,69 @@ export const useScreenshotStore = create<ScreenshotStore>((set, get) => ({
     set({ clipboardSupported: supported });
   },
 
-  setCanvasRef: (ref: React.RefObject<HTMLCanvasElement | null>) => {
-    set({ canvasRef: ref });
+  setPreviewRef: (ref: React.RefObject<HTMLDivElement | null>) => {
+    set({ previewRef: ref });
   },
 
   // Download functionality
-  handleDownload: () => {
-    const { canvasRef } = get();
-    if (!canvasRef?.current) return;
+  handleDownload: async () => {
+    const { previewRef } = get();
+    if (!previewRef?.current) return;
 
-    const dataUrl = canvasRef.current.toDataURL("image/png", 1.0);
-    const link = document.createElement("a");
-    link.download = `screenshot-${Date.now()}.png`;
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const canvas = await html2canvas(previewRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement("a");
+      link.download = `screenshot-${Date.now()}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
   },
 
   // Copy to clipboard functionality
   handleCopyToClipboard: async () => {
-    const { clipboardSupported, canvasRef, setCopyStatus } = get();
-    if (!clipboardSupported || !canvasRef?.current) return;
+    const { clipboardSupported, previewRef, setCopyStatus } = get();
+    if (!clipboardSupported || !previewRef?.current) return;
 
     try {
       setCopyStatus("copying");
 
-      try {
-        const item = new ClipboardItem({
-          "image/png": canvasToBlob(canvasRef.current),
-        });
+      const item = new ClipboardItem({
+        "image/png": new Promise(async (resolve) => {
+          if (!previewRef.current) {
+            throw new Error("Preview reference is not set");
+          }
 
-        await navigator.clipboard.write([item]);
+          const canvas = await html2canvas(previewRef.current, {
+            backgroundColor: null,
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+          });
 
-        setCopyStatus("success");
-        setTimeout(() => setCopyStatus("idle"), 2000);
-      } catch (error) {
-        setCopyStatus("error");
-        setTimeout(() => setCopyStatus("idle"), 2000);
-      }
+          const blob = await canvasToBlob(canvas);
+          resolve(blob);
+        }),
+      });
+
+      await navigator.clipboard.write([item]);
+
+      setCopyStatus("success");
+      setTimeout(() => setCopyStatus("idle"), 2000);
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       setCopyStatus("error");
       setTimeout(() => setCopyStatus("idle"), 3000);
-    }
-  },
-
-  // Render to canvas
-  renderCanvas: async () => {
-    const {
-      uploadedImage,
-      canvasRef,
-      padding,
-      borderRadius,
-      selectedBackground,
-      shadowEnabled,
-      shadowOffsetY,
-      shadowBlur,
-      shadowOpacity,
-    } = get();
-
-    if (!uploadedImage || !canvasRef?.current) return;
-
-    try {
-      await renderScreenshot({
-        canvas: canvasRef.current,
-        imageData: uploadedImage,
-        padding,
-        borderRadius,
-        background: selectedBackground,
-        shadowOffsetY: shadowEnabled ? shadowOffsetY : 0,
-        shadowBlur: shadowEnabled ? shadowBlur : 0,
-        shadowOpacity: shadowEnabled ? shadowOpacity : 0,
-      });
-    } catch (error) {
-      console.error("Rendering failed:", error);
     }
   },
 }));
